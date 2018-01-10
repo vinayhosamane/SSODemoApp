@@ -15,6 +15,8 @@ import {
 var { FBLogin, FBLoginManager } = require('react-native-facebook-login');
 import {GoogleSignin, GoogleSigninButton} from 'react-native-google-signin';
 
+import {FacebookApp} from './LoginProviders/Facebook.js';
+
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' +
     'Cmd+D or shake for dev menu',
@@ -29,13 +31,14 @@ GoogleSignin.configure({
   // you can now call currentUserAsync()
 });
 
-export default class App extends Component<{}> {
+export default class App extends Component {
 
 
   constructor(props){
     super(props);
 
     this.signIn = this.signIn.bind(this);
+    this.fbPress = this.fbPress.bind(this);
   }
 
   componentDidMount(){
@@ -46,7 +49,7 @@ export default class App extends Component<{}> {
     console.log("Signed in");
     const user = GoogleSignin.currentUser();
 
-    if(user){
+    if(user!=null){
       GoogleSignin.signOut()
       .then(() => {
         console.log('out');
@@ -55,6 +58,7 @@ export default class App extends Component<{}> {
       
       });
     }
+
       GoogleSignin.signIn()
       .then((user) => {
         console.log(user);
@@ -65,21 +69,42 @@ export default class App extends Component<{}> {
       })
       .done();
     
-
-   
+    
   }
+
+  fbPress(){
+    console.log('fbPressed');
+    FBLoginManager.setLoginBehavior(FBLoginManager.LoginBehaviors.Web); // defaults to Native
+    
+    FBLoginManager.loginWithPermissions(["email","user_friends","public_profile"], function(error, data){
+      if (!error) {
+        console.log("Login data: ", data);
+      } else {
+        console.log("Error: ", error);
+      }
+    })
+  }
+
 
   render() {
     return (
       <View style={styles.container}>
         
-        <FBLogin style={{ marginBottom: 10, }}
+        <Text style={styles.welcome}>Signin or Signup using </Text>
+
+        <FacebookApp
+        onPress ={this.fbPress}
+         />
+        {/* <FBLogin style={{ marginBottom: 10, }}
         ref={(fbLogin) => { this.fbLogin = fbLogin }}
-        permissions={["email","user_friends"]}
+        permissions={["email","user_friends","public_profile"]}
         loginBehavior={FBLoginManager.LoginBehaviors.Native}
         onLogin={function(data){
           console.log("Logged in!");
           console.log(data);
+
+          
+
           //this.setState({ user : data.credentials });
         }}
         onLogout={function(){
@@ -106,7 +131,7 @@ export default class App extends Component<{}> {
           console.log("Check permissions!");
           console.log(data);
         }}
-      />
+      /> */}
       <GoogleSigninButton
     style={{width: 48, height: 48}}
     size={GoogleSigninButton.Size.Icon}
@@ -126,7 +151,7 @@ const styles = StyleSheet.create({
   },
   welcome: {
     fontSize: 20,
-    textAlign: 'center',
+    textAlign: 'left',
     margin: 10,
   },
   instructions: {
